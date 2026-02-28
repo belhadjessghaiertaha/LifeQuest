@@ -19,29 +19,85 @@ interface ProfileStats {
   total_xp_for_level: number;
 }
 
+interface WeeklyStats {
+  tasks: number;
+  habits: number;
+  events: number;
+  notes: number;
+  achievements: number;
+}
+
 export default function OverviewModule() {
   const [stats, setStats] = useState<ProfileStats | null>(null);
+  const [weeklyStats, setWeeklyStats] = useState<WeeklyStats>({
+    tasks: 0,
+    habits: 0,
+    events: 0,
+    notes: 0,
+    achievements: 0,
+  });
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const { data } = await supabase
+        const { data: profileData } = await supabase
           .from('profiles')
           .select('name, level, xp, streak')
           .eq('email', 'Belhadjessghaiertaha@gmail.com')
-          .single();
+          .maybeSingle();
 
-        if (data) {
-          // Calculate XP needed for next level (e.g., 100 * level)
-          const totalXpForLevel = 100 * (data.level + 1);
+        if (profileData) {
+          const totalXpForLevel = 100 * (profileData.level + 1);
           setStats({
-            ...data,
+            ...profileData,
             total_xp_for_level: totalXpForLevel,
           });
         }
+
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+        const oneWeekAgoStr = oneWeekAgo.toISOString().split('T')[0];
+
+        const { count: tasksCount } = await supabase
+          .from('tasks')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_email', 'Belhadjessghaiertaha@gmail.com')
+          .eq('status', 'completed')
+          .gte('created_at', oneWeekAgoStr);
+
+        const { count: habitsCount } = await supabase
+          .from('habit_logs')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_email', 'Belhadjessghaiertaha@gmail.com')
+          .gte('logged_date', oneWeekAgoStr);
+
+        const { count: eventsCount } = await supabase
+          .from('events')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_email', 'Belhadjessghaiertaha@gmail.com')
+          .gte('created_at', oneWeekAgoStr);
+
+        const { count: notesCount } = await supabase
+          .from('notes')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_email', 'Belhadjessghaiertaha@gmail.com')
+          .gte('created_at', oneWeekAgoStr);
+
+        const { count: achievementsCount } = await supabase
+          .from('achievements')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_email', 'Belhadjessghaiertaha@gmail.com');
+
+        setWeeklyStats({
+          tasks: tasksCount || 0,
+          habits: habitsCount || 0,
+          events: eventsCount || 0,
+          notes: notesCount || 0,
+          achievements: achievementsCount || 0,
+        });
       } catch (error) {
-        console.error('Error fetching profile stats:', error);
+        console.error('Error fetching stats:', error);
       } finally {
         setIsLoading(false);
       }
@@ -62,7 +118,6 @@ export default function OverviewModule() {
 
   return (
     <div className="space-y-4">
-      {/* Welcome Card */}
       <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
         <CardHeader>
           <CardTitle className="text-2xl">Welcome back, {stats.name}!</CardTitle>
@@ -72,9 +127,7 @@ export default function OverviewModule() {
         </CardHeader>
       </Card>
 
-      {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Level & XP */}
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
@@ -97,7 +150,6 @@ export default function OverviewModule() {
           </CardContent>
         </Card>
 
-        {/* Streak */}
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
@@ -113,7 +165,6 @@ export default function OverviewModule() {
           </CardContent>
         </Card>
 
-        {/* Achievements */}
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
@@ -123,33 +174,32 @@ export default function OverviewModule() {
           </CardHeader>
           <CardContent>
             <div>
-              <div className="text-3xl font-bold text-yellow-500">0</div>
+              <div className="text-3xl font-bold text-yellow-500">{weeklyStats.achievements}</div>
               <p className="text-xs text-muted-foreground">Unlocked badges</p>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Quick Stats */}
       <Card>
         <CardHeader>
           <CardTitle className="text-sm">This Week</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-4 gap-4">
           <div className="text-center">
-            <div className="text-2xl font-bold text-primary">0</div>
+            <div className="text-2xl font-bold text-primary">{weeklyStats.tasks}</div>
             <p className="text-xs text-muted-foreground">Tasks Done</p>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-accent">0</div>
+            <div className="text-2xl font-bold text-accent">{weeklyStats.habits}</div>
             <p className="text-xs text-muted-foreground">Habits</p>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-purple-500">0</div>
+            <div className="text-2xl font-bold text-green-500">{weeklyStats.events}</div>
             <p className="text-xs text-muted-foreground">Events</p>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-green-500">0</div>
+            <div className="text-2xl font-bold text-pink-500">{weeklyStats.notes}</div>
             <p className="text-xs text-muted-foreground">Notes</p>
           </div>
         </CardContent>

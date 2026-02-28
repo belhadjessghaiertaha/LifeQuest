@@ -46,6 +46,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     { label: 'Dashboard', href: '/dashboard', icon: '📊' },
     { label: 'Calendar', href: '/dashboard/calendar', icon: '📅' },
     { label: 'Tasks', href: '/dashboard/tasks', icon: '✓' },
+    { label: 'To-Do', href: '/dashboard/todos', icon: '☑️' },
     { label: 'Notes', href: '/dashboard/notes', icon: '📝' },
     { label: 'Habits', href: '/dashboard/habits', icon: '⚡' },
     { label: 'Money', href: '/dashboard/money', icon: '💰' },

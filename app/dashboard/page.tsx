@@ -23,7 +23,15 @@ const MODULE_CARDS = [
     description: 'Organize your projects and tasks',
     icon: CheckSquare,
     href: '/dashboard/tasks',
-    color: 'from-purple-500 to-purple-600',
+    color: 'from-green-500 to-green-600',
+  },
+  {
+    id: 'todos',
+    title: 'To-Do List',
+    description: 'Quick checklist for daily tasks',
+    icon: CheckSquare,
+    href: '/dashboard/todos',
+    color: 'from-teal-500 to-teal-600',
   },
   {
     id: 'notes',
@@ -47,7 +55,7 @@ const MODULE_CARDS = [
     description: 'Track income and expenses (TND)',
     icon: DollarSign,
     href: '/dashboard/money',
-    color: 'from-green-500 to-green-600',
+    color: 'from-emerald-500 to-emerald-600',
   },
   {
     id: 'achievements',
